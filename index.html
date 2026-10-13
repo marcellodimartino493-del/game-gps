@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b121a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GAME GPS">
+<meta name="description" content="GAME GPS – echte Straßenkarten und Routen mit einem GTA-inspirierten Navigation-HUD sowie Minecraft- und Fortnite-Styles.">
+<title>GAME GPS | Streets, your way</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body data-theme="gta">
+<div id="map" aria-label="Interaktive Karte" role="application"></div>
+<div class="map-grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand-mark"><span class="brand-emblem">G<span class="emblem-dot">•</span></span></div>
+  <div class="brand-words"><strong>GAME<span>GPS</span></strong><small>YOUR CITY. YOUR RULES.</small></div>
+  <span class="topbar-rule"></span><span class="topbar-chapter">LOS SANTOS VIBES <span class="beta-label">BETA</span></span>
+  <div class="topbar-right"><span class="signal"><i id="signalDot"></i><span id="signalText">MAP ONLINE</span></span><button id="togglePanel" class="icon-btn top-close" title="Routenplaner ein-/ausblenden" aria-label="Routenplaner ein-/ausblenden" aria-expanded="true">☰</button></div>
+</header>
+
+<main id="panel" class="route-panel">
+  <div class="panel-heading"><div><div class="overline">WAYPOINT SYSTEM <span class="section-index">/ 01</span></div><h1>Wo soll’s hingehen<span>?</span></h1></div><span class="panel-decor">✦</span></div>
+  <div class="form-area">
+    <div class="location-fields">
+      <div class="line-decoration"><span></span><i></i><span></span></div>
+      <label class="field" for="from"><span>START</span><div class="field-control"><input id="from" type="search" value="Mein Standort" placeholder="Startadresse oder Ort" autocomplete="off"><button id="pickStart" type="button" class="field-button" title="Start auf Karte wählen" aria-label="Start auf Karte wählen">⌖</button></div></label>
+      <label class="field" for="to"><span>ZIEL</span><div class="field-control"><input id="to" type="search" placeholder="Adresse, Stadt, Sehenswürdigkeit…" autocomplete="off"><button id="pickDest" type="button" class="field-button" title="Ziel auf Karte wählen" aria-label="Ziel auf Karte wählen">⌖</button></div></label>
+    </div>
+    <div class="travel-options" role="group" aria-label="Verkehrsmittel">
+      <button data-transport="car" class="travel active" aria-pressed="true"><span class="travel-ico">◆</span> Auto</button>
+      <button data-transport="bike" class="travel" aria-pressed="false"><span class="travel-ico">◇</span> Rad</button>
+      <button data-transport="foot" class="travel" aria-pressed="false"><span class="travel-ico">♟</span> Fußweg</button>
+    </div>
+    <button id="calculate" class="main-cta"><span id="calcLabel">ROUTE FINDEN</span><span class="cta-arrow">↗</span></button>
+    <p id="notice" class="notice" role="status" aria-live="polite">Wähle ein Ziel oder tippe auf eine Stelle der Karte.</p>
+  </div>
+  <section class="recent" id="recentSection" hidden><div class="overline">LETZTE ZIELE</div><div id="recentList" class="recent-list"></div></section>
+  <section id="result" class="route-result" hidden>
+    <div class="result-title"><div><div class="overline">ROUTE GEFUNDEN <span class="good-dot">●</span></div><h2 id="routeTitle">Ziel</h2></div><button id="clearRoute" type="button" class="text-close" title="Route löschen" aria-label="Route löschen">✕</button></div>
+    <div class="route-metrics"><div><span id="timeMetric">—</span><small>MIN</small></div><div><span id="distanceMetric">—</span><small>KM</small></div><div><span id="arrivalMetric">—</span><small>ANKUNFT</small></div></div>
+    <div id="alternatives" class="alt-route-list" hidden></div>
+    <div class="result-buttons"><button class="start-nav" id="startNav"><span id="startNavLabel">▶ GPS-FOLGEMODUS</span></button><button class="ghost-action" id="shareRoute" title="Route teilen" aria-label="Route teilen">↗</button></div>
+    <button id="stepsToggle" class="steps-toggle" aria-expanded="false">WEGBESCHREIBUNG <span id="stepCount"></span><span id="stepsChevron">＋</span></button>
+    <div id="steps" class="step-list" hidden></div>
+    <div class="fineprint">Vorschau ohne Live-Verkehr, automatische Umleitung oder Sprachansagen. Nicht während der Fahrt bedienen.</div>
+  </section>
+  <div class="panel-bottom"><span>MAP DATA: OPENSTREETMAP / OPENFREEMAP</span><span>V 0.3</span></div>
+</main>
+
+<div id="navHud" class="nav-hud" hidden><div class="nav-hud-arrow" id="hudArrow">↑</div><div class="nav-hud-copy"><div class="overline">NEXT MOVE <span class="pulse-tiny">● GPS</span></div><strong id="hudInstruction">Route folgen</strong><small id="hudDistance">Position wird ermittelt</small></div><button id="endNav" title="GPS-Folgemodus beenden" aria-label="GPS-Folgemodus beenden">✕</button></div>
+
+<aside class="map-controls" aria-label="Kartensteuerung">
+  <button id="locate" class="map-control primary-control" title="GPS-Standort" aria-label="GPS-Standort anzeigen">◎</button>
+  <button id="tilt" class="map-control" title="3D-Kartenansicht umschalten" aria-label="3D-Kartenansicht umschalten" aria-pressed="false">3D</button>
+  <button id="resetNorth" class="map-control compass-control" title="Karte nach Norden ausrichten" aria-label="Karte nach Norden ausrichten"><span id="compassNeedle">▲</span><small>N</small></button>
+  <button id="zoomIn" class="map-control" title="Vergrößern" aria-label="Vergrößern">＋</button>
+  <button id="zoomOut" class="map-control" title="Verkleinern" aria-label="Verkleinern">−</button>
+  <button id="fitRoute" class="map-control" title="Gesamte Route anzeigen" aria-label="Gesamte Route anzeigen">◇</button>
+</aside>
+
+<div id="radar" class="radar" aria-label="GTA-inspirierte Minimap"><div class="radar-head"><span>RADAR <span id="radarZone">FRANKFURT</span></span><button id="toggleRadar" title="Minimap aus-/einblenden" aria-label="Minimap aus-/einblenden">–</button></div><div id="radarMap" class="radar-map"></div><div class="radar-cross" aria-hidden="true">＋</div><div class="radar-footer"><span><i class="gta-cyan"></i> NAV LINK</span><span id="speedMetric">— KM/H</span></div></div>
+
+<div class="mode-dock"><div class="dock-label"><span>MAP STYLES</span><small>01 / 03</small></div><div class="mode-buttons">
+ <button class="mode" data-skin="minecraft" aria-pressed="false"><span class="mode-icon grass">▦</span><span>MINECRAFT</span></button>
+ <button class="mode active" data-skin="gta" aria-pressed="true"><span class="mode-icon gta-sign">V</span><span>GTA STYLE</span></button>
+ <button class="mode" data-skin="fortnite" aria-pressed="false"><span class="mode-icon fort-sign">◈</span><span>FORTNITE</span></button>
+ </div></div>
+
+<div id="mapTip" class="map-tip" hidden><span>⌖</span> Tippe auf die Karte, um <strong id="tapKind">das Ziel</strong> zu setzen <button id="cancelPick">Abbrechen</button></div>
+<div class="credit">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · Routing <a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noopener noreferrer">FOSSGIS</a></div>
+<div id="appError" class="app-error" hidden></div>
+<script src="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.js"></script>
+<script src="./app.js" defer></script>
+</body>
+</html>

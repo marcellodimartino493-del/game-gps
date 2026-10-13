@@ -1,0 +1,11 @@
+{
+ "name":"GAME GPS – Gaming Navigation",
+ "short_name":"GAME GPS",
+ "description":"Echte Straßenkarten mit einem Gaming-Interface, GPS und Routenplanung.",
+ "start_url":"./index.html",
+ "scope":"./",
+ "display":"standalone",
+ "background_color":"#0b121a",
+ "theme_color":"#0b121a",
+ "icons":[{"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"}]
+}
