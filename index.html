@@ -11,7 +11,7 @@
 <title>GAME GPS | Streets, your way</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<link href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.css" rel="stylesheet" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.css'">
 <link rel="stylesheet" href="./style.css">
 </head>
 <body data-theme="gta">
@@ -76,7 +76,37 @@
 <div id="mapTip" class="map-tip" hidden><span>⌖</span> Tippe auf die Karte, um <strong id="tapKind">das Ziel</strong> zu setzen <button id="cancelPick">Abbrechen</button></div>
 <div class="credit">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · Routing <a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noopener noreferrer">FOSSGIS</a></div>
 <div id="appError" class="app-error" hidden></div>
-<script src="https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.js"></script>
-<script src="./app.js" defer></script>
+<script type="module">
+  // MapLibre GL JS 6 wird nur als ES-Modul ausgeliefert, nicht mehr als maplibre-gl.js.
+  const urls = [
+    'https://unpkg.com/maplibre-gl@6.11.2/dist/maplibre-gl.mjs',
+    'https://cdn.jsdelivr.net/npm/maplibre-gl@6.11.2/dist/maplibre-gl.mjs'
+  ];
+  let library = null;
+  for (const url of urls) {
+    try {
+      library = await import(url);
+      break;
+    } catch (error) {
+      console.warn('Kartenbibliothek von CDN nicht erreichbar:', url, error);
+    }
+  }
+  const errorElement = document.getElementById('appError');
+  if (!library) {
+    const message = 'Die Kartenbibliothek ist nicht erreichbar. Prüfe deine Internetverbindung und lade die Seite neu.';
+    errorElement.textContent = message;
+    errorElement.hidden = false;
+    document.getElementById('notice').textContent = message;
+  } else {
+    window.maplibregl = library;
+    try {
+      await import('./app.js?v=0.3.1');
+    } catch (error) {
+      console.error('GAME GPS konnte nicht gestartet werden:', error);
+      errorElement.textContent = 'Die App konnte nicht gestartet werden. Lade die Seite erneut.';
+      errorElement.hidden = false;
+    }
+  }
+</script>
 </body>
 </html>
